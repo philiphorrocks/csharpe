@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Data;
-using System.Xml;
 
 
 class Program
@@ -58,25 +52,15 @@ class Program
 
 
 		foreach (DataRow row in table.Rows) { // Loop over the rows.
-			Console.WriteLine ("--- Row ---"); // Print separator.
+			//Console.WriteLine ("--- Row ---"); // Print separator.
 				foreach (var item in row.ItemArray) { // Loop over the items.
-					Console.WriteLine (item); // Invokes ToString abstract method.
+					//Console.WriteLine (item); // Invokes ToString abstract method.
 
 			}
 		}
 	}
 
 
-	
-	public static void WeightedPrice()
-
-	{
-
-
-
-
-
-	}
 
 	
 	public static void timeDiff()
@@ -91,7 +75,7 @@ class Program
 
 
 
-	public static void queryData()
+	static void queryData()
 
 	{
 
@@ -144,11 +128,9 @@ class Program
 
 		foreach (var volume in volumeList)
 		{
-
 			//Console.WriteLine(string.Format("{0}", volume));
 
 			vList.Add(volume);
-
 
 		}
 
@@ -162,6 +144,7 @@ class Program
 
 		}
 
+
 		foreach (var time in timeList)
 		{
 
@@ -172,7 +155,6 @@ class Program
 		}
 
 
-	
 		//Calculate Total Volume
 
 		int vtotal = vList.Sum();
@@ -185,9 +167,45 @@ class Program
 
 		//Calculate the max time between trades
 
-		//int ttoal = tList.Sort();
-
 	}
+
+
+
+
+	public static void getUnique()
+
+	{
+
+
+		DataTable table = Data("/tmp/input.csv");
+
+
+		//Create list to hold unique values
+
+		List<string> uList = new List<string>();
+
+		//Liq query
+
+		var symList = (from sq in table.AsEnumerable()
+
+		               select sq.Field<string>("symb")
+		              
+		               ).ToList().Distinct(); 
+
+		//get unique symbols
+
+		foreach (var uniq in symList)
+		{
+			//Console.WriteLine(string.Format("{0}", volume));
+
+			uList.Add(uniq);
+
+		}
+
+		Console.WriteLine("Unique symbols: " + uList.Count());
+	}
+
+
 
 
 	//Main Program calls the methods
@@ -200,7 +218,8 @@ class Program
 		//printTable();      
 		//Query Table
 
-		queryData ();
+		//queryData ();
+		getUnique ();
 		Console.Read (); // Pause.
 
 	}
