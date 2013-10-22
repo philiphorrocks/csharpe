@@ -8,7 +8,6 @@ using System.Xml;
 
 class Program
 {
-
     public static DataTable Data(string filePath)
     {
 
@@ -72,32 +71,39 @@ class Program
     }
 
 
+
     static void timeDiff(List<int> tList)
     {
-       int cmpTime;
-       tList.Reverse();
-       int i = 1;
-       
-       //Console.WriteLine(tList.Count());
-       List<int> tDiff = new List<int>();
-       
-        foreach (var time in tList)
-	   {
-		
-            Console.WriteLine(time);
+        int delta;
 
-            int time2 = tList[i];
-           
-            
-            cmpTime = time - time2; 
-	       tDiff.Add(cmpTime);
-           i++;
-       }        
+        List<int> maxTimeList = new List<int>();
 
+        tList.Reverse();
+        int num = 1;
+
+        for (int i = 0; i < tList.Count; i++) // Loop through List with for
+        {
+            if (num >= tList.Count)
+            {
+
+                break;
+
+            }
+
+            else
+
+             delta = (tList[i] - tList[num]);
+             //Console.WriteLine (delta);
+             num = num + 1;
+
+             maxTimeList.Add(delta);
+
+        }
+
+        Console.WriteLine(maxTimeList.Max());
+        Console.Read(); // Pause.
+   
     }
-
-
-  
     
 
 
@@ -121,32 +127,29 @@ class Program
 
         var volumeList = (from sq in table.AsEnumerable()
 
-                          where sq.Field<string>("symb") == symbol
+                          where sq.Field<string>("symb") == "aab"
                           select
                           sq.Field<int>("quant")
 
                           ).ToList();
 
 
-
         var priceList = (from sq in table.AsEnumerable()
 
-                         where sq.Field<string>("symb") == symbol
+                         where sq.Field<string>("symb") == "aab"
                          select
                          sq.Field<int>("price")
 
                          ).ToList();
 
 
-
         var timeList = (from sq in table.AsEnumerable()
 
-                        where sq.Field<string>("symb") == symbol
+                        where sq.Field<string>("symb") == "aab"
                         select
                        sq.Field<int>("time")
 
                         ).ToList();
-
 
 
         try
@@ -183,7 +186,6 @@ class Program
             Console.WriteLine("Error reading from {0}. Message = {1}", e.Message);
         }
 
-
         
         //Calculate Total Volume
         int vtotal = vList.Sum();
@@ -195,7 +197,8 @@ class Program
 
         //Calculate the max time between trades (Standard Deviation)
         timeDiff(tList);
-        //Console.WriteLine(getTime);
+        
+
             
     }
 
@@ -225,7 +228,6 @@ class Program
             foreach (var uniq in symList)
             {
                 //Console.WriteLine(string.Format("{0}", volume));
-
                 uList.Add(uniq);
                 queryData(uniq);
 
@@ -244,18 +246,13 @@ class Program
     }
 
 
-
     ///////////Main Program calls the methods///////////
 
     static void Main()
     {
 
         //Method to get otuput of table data     
-        
         getUnique();
-
-
         Console.Read(); // Pause.
-
     }
 }
