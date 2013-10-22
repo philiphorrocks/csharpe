@@ -28,7 +28,7 @@ class Program
         try
         {
 
-              
+
             IEnumerable<String> lines = File.ReadAllLines(filePath);
 
             foreach (var line in lines)
@@ -39,12 +39,12 @@ class Program
                 newRow.ItemArray = fields;
 
             }
-            }
-        catch (System.IO.IOException e)
-            {
-            
-                Console.WriteLine("Error reading from {0}. Message = {1}", e.Message);
-            }
+        }
+        catch
+        {
+
+            Console.WriteLine("Error reading from file");
+        }
 
             return dataTable;
     }
@@ -71,41 +71,29 @@ class Program
     }
 
 
-
-    static void timeDiff(List<int> tList)
+    static int timeDiff (List<int> tList)
     {
-        int delta;
+        
+        int max = Int32.MinValue;
+        int delta = 0;
 
-        List<int> maxTimeList = new List<int>();
-
-        tList.Reverse();
-        int num = 1;
-
-        for (int i = 0; i < tList.Count; i++) // Loop through List with for
+        for (int i = 1; i < tList.Count; i++) 
         {
-            if (num >= tList.Count)
-            {
-
-                break;
-
-            }
-
-            else
-
-             delta = (tList[i] - tList[num]);
+             delta = tList[i] - tList[i - 1];
              //Console.WriteLine (delta);
-             num = num + 1;
 
-             maxTimeList.Add(delta);
-
+             if (delta > max) max = delta; 
+                      
         }
+            Console.WriteLine("Max Time: " + delta);
+        
+        return delta;
 
-        Console.WriteLine(maxTimeList.Max());
-        Console.Read(); // Pause.
+        //Console.Read(); // Pause.
+ 
    
     }
     
-
 
     //Process the trade data
     static void queryData(string symbol)
@@ -117,90 +105,93 @@ class Program
         List<int> pList = new List<int>();
         List<int> tList = new List<int>();
 
+
+
         // Get instance of the DataTable.
 
         DataTable table = Data("D:/input.csv");
 
-        //Console.WriteLine(symbol);
+        Console.WriteLine("Symbol: " + symbol);
 
         ///SQL SELECT Statement using LINQ
 
-        var volumeList = (from sq in table.AsEnumerable()
+            var volumeList = (from sq in table.AsEnumerable()
 
-                          where sq.Field<string>("symb") == "aab"
-                          select
-                          sq.Field<int>("quant")
+                              where sq.Field<string>("symb") == symbol
+                              select
+                              sq.Field<int>("quant")
 
-                          ).ToList();
-
-
-        var priceList = (from sq in table.AsEnumerable()
-
-                         where sq.Field<string>("symb") == "aab"
-                         select
-                         sq.Field<int>("price")
-
-                         ).ToList();
+                              ).ToList();
 
 
-        var timeList = (from sq in table.AsEnumerable()
+            var priceList = (from sq in table.AsEnumerable()
 
-                        where sq.Field<string>("symb") == "aab"
-                        select
-                       sq.Field<int>("time")
+                             where sq.Field<string>("symb") == symbol
+                             select
+                             sq.Field<int>("price")
 
-                        ).ToList();
+                             ).ToList();
 
 
-        try
+            var timeList = (from sq in table.AsEnumerable()
+
+                            where sq.Field<string>("symb") == symbol
+                            select
+                           sq.Field<int>("time")
+
+                            ).ToList();
+
+
+
+        //Loop through the data in the list
+
+        foreach (var volume in volumeList)
         {
-                //Loop through the data in the list
+            //Console.WriteLine(volume);
 
-                foreach (var volume in volumeList)
-                {
-                    //Console.WriteLine(string.Format("{0}", volume));
-
-                    vList.Add(volume);
-                }
-
-                foreach (var price in priceList)
-                {
-                    //Console.WriteLine(string.Format("{0}", price));
-
-                    pList.Add(price);
-
-                }
-
-                foreach (var time in timeList)
-                {
-
-                    //Console.WriteLine(string.Format("{0}", time));
-
-                    tList.Add(time);
-
-                }
-        }
-        catch (System.IO.IOException e)
-        {
-            
-            Console.WriteLine("Error reading from {0}. Message = {1}", e.Message);
+            vList.Add(volume);
         }
 
-        
+        foreach (var price in priceList)
+        {
+            //Console.WriteLine(string.Format("{0}", price));
+
+            pList.Add(price);
+
+        }
+
+        foreach (var time in timeList)
+        {
+
+            //Console.WriteLine(string.Format("{0}", time));
+
+            tList.Add(time);
+
+         }
+
+
         //Calculate Total Volume
         int vtotal = vList.Sum();
-        //Console.WriteLine("Total Volume:" + vtotal);
+        Console.WriteLine("Total Volume:" + vtotal);
 
-        //Calculate Max Price
+        ////Calculate Max Price
         int mtotal = pList.Max();
-        //Console.WriteLine("Max Price:" + mtotal);
+        Console.WriteLine("Max Price:" + mtotal);
 
-        //Calculate the max time between trades (Standard Deviation)
-        timeDiff(tList);
-        
+        ////Calculate the max time between trades (Standard Deviation)
+        var dTime = timeDiff(tList);
+        Console.WriteLine("Max time " + dTime);
 
-            
+        //Calculate Weighted Average Price
+        var wightAv = weightedAverage(pList, vList);
+        Console.WriteLine("Weighted Average " + wightAv);
+
+        Console.WriteLine("\n");
+
+        //Add Values to List and update it
+
     }
+
 
 
     //Loop thorough each unique trade
@@ -227,10 +218,9 @@ class Program
             //get unique symbols
             foreach (var uniq in symList)
             {
-                //Console.WriteLine(string.Format("{0}", volume));
                 uList.Add(uniq);
                 queryData(uniq);
-
+                
             }
 
         }
@@ -246,8 +236,33 @@ class Program
     }
 
 
-    ///////////Main Program calls the methods///////////
 
+    static int weightedAverage(List<int> pList, List<int> vList)
+    {
+        List<int> weightMultiplyList = new List<int>();
+
+        foreach (var pair in pList.Zip(vList, (a, b) => new { A = a, B = b }))
+        {
+            //Calculate Average Weighting
+            int multVal = pair.A  * pair.B;
+            weightMultiplyList.Add(multVal);
+            
+        }
+
+        weightMultiplyList.Sum();
+        vList.Sum();
+
+        return weightMultiplyList.Sum() / vList.Sum();
+    }
+   
+	        
+
+
+
+    ///////////Main Program calls the methods///////////
+    /// <Process Trade Application>
+    /// ///////////////////////////////////////////////
+   
     static void Main()
     {
 
